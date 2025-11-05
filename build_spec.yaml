@@ -35,6 +35,6 @@ steps:
       docker build -t ${DOCKER_TAG} .
 
 outputArtifacts:
-  - name: dockerImage
+  - name: docker-image
     type: DOCKER_IMAGE
     location: ${DOCKER_TAG}
