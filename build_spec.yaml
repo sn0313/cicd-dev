@@ -7,7 +7,6 @@ shell: bash
 env:
   variables:
     DEPLOYMENT_ENV: "stage"
-    # Registry URI: region.ocir.io/tenancy-namespace/repo/image
     REGISTRY: "sg.ocir.io/ax3rpuvlqpux/devops-repo/myapp"
     IMAGE_CREATED_BY: "OCIDevOps"
 
@@ -16,13 +15,14 @@ env:
     - DOCKER_TAG
 
 steps:
+
   - type: Command
     name: "Docker Build and Tag"
     timeoutInSeconds: 3000
     command: |
-      echo "Starting Docker build step..."
+      echo "Starting build..."
 
-      # Extract 7-char hash from Build Run ID
+      # Extract 7-char hash from the Build Run ID
       export BUILDRUN_HASH=$(echo "${OCI_BUILD_RUN_ID}" | rev | cut -c 1-7)
       echo "BUILDRUN_HASH: ${BUILDRUN_HASH}"
 
@@ -31,14 +31,10 @@ steps:
       export DOCKER_TAG="${REGISTRY}:${IMAGE_VERSION}"
       echo "DOCKER_TAG: ${DOCKER_TAG}"
 
-      # Build Docker image
+      # Build docker image
       docker build -t ${DOCKER_TAG} .
 
-      # Optionally, tag as latest
-      docker tag ${DOCKER_TAG} ${REGISTRY}:latest
-      echo "Docker image built: ${DOCKER_TAG} and tagged as latest"
-
 outputArtifacts:
-  - name: docker-image           # Must match Deliver Artifact stage configuration
+  - name: dockerImage
     type: DOCKER_IMAGE
     location: ${DOCKER_TAG}
