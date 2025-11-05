@@ -7,6 +7,7 @@ shell: bash
 env:
   variables:
     DEPLOYMENT_ENV: "stage"
+    # Registry URI: region.ocir.io/tenancy-namespace/repo/image
     REGISTRY: "sg.ocir.io/ax3rpuvlqpux/devops-repo/myapp"
     IMAGE_CREATED_BY: "OCIDevOps"
 
@@ -38,6 +39,6 @@ steps:
       echo "Docker image built: ${DOCKER_TAG} and tagged as latest"
 
 outputArtifacts:
-  - name: docker-image           
+  - name: docker-image           # Must match Deliver Artifact stage configuration
     type: DOCKER_IMAGE
     location: ${DOCKER_TAG}
