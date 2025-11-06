@@ -1,34 +1,56 @@
-version: 1.0
-component: deployment
+version: 0.1
+component: build
+timeoutInSeconds: 6000
+runAs: root
+shell: bash
 env:
+  # these are local variables to the build config
   variables:
-    version: ${appVersion}
-files:
-  # This section is to define how the files in the artifact shall 
-  # be put on the compute instance
-  - source: /
-    destination: /tmp/
-steps:
-  # This section is to define the scripts that each step shall run on the instance after file copy.
-  - stepType: Command
-    name: Setup ENV
-    command: |
-       sudo yum install httpd -y
-       sudo apachectl start
-       sudo systemctl enable httpd
-       sudo firewall-cmd --permanent --zone=public --add-service=http
-       sudo firewall-cmd --reload
-    timeoutInSeconds: 600
 
-  - stepType: Command
-    name: Install Apache Web Server
+  # the value of a vaultVariable is the secret-id (in OCI ID format) stored in the OCI Vault service
+  # you can then access the value of that secret in your build_spec.yaml commands
+  vaultVariables:
+    
+  # exportedVariables are made available to use as parameters in sucessor Build Pipeline stages
+  # For this Build to run, the Build Pipeline needs to have a BUILDRUN_HASH parameter set
+  exportedVariables:
+    - BUILDRUN_HASH
+    - APP_VERSION
+
+
+#Its a native way to fetch artifacts from external or artifact repo or a file path to use before a stage.
+# More about buildspec formats - https://docs.oracle.com/en-us/iaas/Content/devops/using/build_specs.htm
+
+
+steps:
+  - type: Command
+    name: "Define unique image tag"
+    timeoutInSeconds: 40
     command: |
-      hname=`hostname`
-      bg_color="GREEN"
-      if [[ ${hname} == blue* ]]; then
-          bg_color="BLUE"
-      fi
-      sudo truncate -s 0 /var/www/html/index.html
-      sudo chmod 766 /var/www/html/index.html
-      echo "<body><b>With Love from OCI Devops(Version:${APP_VERSION}) ,Served via environment:<font color=$bg_color>$bg_color</font></body>" > /var/www/html/index.html
+      export BUILDRUN_HASH=`echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7`
+      echo "BUILDRUN_HASH: " $BUILDRUN_HASH
+      
+
+      
+#You may skip below and can run the build inside the docker container itself,while building the docker image.
+  - type: Command
     timeoutInSeconds: 600
+    name: "Set the App Version"
+    command: |
+      cd ${OCI_PRIMARY_SOURCE_DIR}
+      export APP_VERSION=`cat app_version.config|grep app_version|cut -f 2 -d '='`
+   
+    onFailure:
+      - type: Command
+        command: |
+          echo "Handling Failure"
+          echo "Failure successfully handled"
+        timeoutInSeconds: 40
+        runAs: root
+     
+outputArtifacts:
+  - name: instance_deploy_manifest
+    type: BINARY
+    # this location tag doesn't effect the tag used to deliver the container image
+    # to the Container Registry
+    location: ${OCI_PRIMARY_SOURCE_DIR}/deploy_spec.yaml
