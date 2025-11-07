@@ -12,8 +12,15 @@ steps:
   - stepType: Command
     name: Setup ENV
     command: |
+       # Stop NGINX if it exists
+       sudo systemctl stop nginx || true
+       sudo systemctl disable nginx || true
+
+       # Install and start Apache
        sudo dnf install httpd -y
        sudo systemctl enable httpd --now
+
+       # Open firewall port 80
        sudo firewall-cmd --permanent --zone=public --add-service=http
        sudo firewall-cmd --reload
     timeoutInSeconds: 600
