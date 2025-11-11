@@ -2,7 +2,7 @@ name: Mirror to SIT Repo
 
 on:
   push:
-    branches: [ "main" ]   # triggers whenever main branch updates
+    branches: [ "main" ]
 
 jobs:
   mirror:
@@ -12,8 +12,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Mirror to target repository
+      - name: Push to mirror
         env:
-          MIRROR_URL: ${{ secrets.MIRROR_URL }}
+          MIRROR_URL: https://sn0313:${{ secrets.SIT_PAT }}@github.com/sn0313/cicd-sit.git
         run: |
           git push --mirror "$MIRROR_URL"
