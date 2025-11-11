@@ -1,0 +1,19 @@
+name: Mirror to SIT Repo
+
+on:
+  push:
+    branches: [ "main" ]   # triggers whenever main branch updates
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Mirror to target repository
+        env:
+          MIRROR_URL: ${{ secrets.MIRROR_URL }}
+        run: |
+          git push --mirror "$MIRROR_URL"
