@@ -1,20 +1,23 @@
 name: Mirror to SIT Repo
 
+# Trigger on pushes to main branch
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   mirror:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the source repo completely
       - name: Checkout source repo
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Push to mirror
+      # Step 2: Configure Git
+      - name: Set Git user
         run: |
-          git remote add mirror https://sn0313:${{ secrets.SIT_PAT }}@github.com/sn0313/cicd-sit.git
-          git push --mirror mirror
+          git config user.name "GitHub Actions"
+          git config user.email "actions
