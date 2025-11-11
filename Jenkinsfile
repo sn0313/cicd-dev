@@ -5,7 +5,6 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Build started..."
-                // For simplicity, just print files
                 sh 'ls -l'
             }
         }
@@ -13,14 +12,14 @@ pipeline {
         stage('Test') {
             steps {
                 echo "Running simple tests..."
-                sh 'echo "All tests passed!"'
+                sh 'if [ -f index.html ]; then echo "index.html exists, test passed!"; else echo "Test failed!"; exit 1; fi'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deploying..."
-                sh 'echo "Deployment completed successfully!" > deployed.txt'
+                echo "Deploying to web server..."
+                sh 'sudo cp index.html /usr/share/nginx/html/index.html'
             }
         }
     }
