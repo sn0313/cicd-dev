@@ -7,13 +7,14 @@ on:
 jobs:
   mirror:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout source repo
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Push to mirror
-        env:
-          MIRROR_URL: https://sn0313:${{ secrets.SIT_PAT }}@github.com/sn0313/cicd-sit.git
         run: |
-          git push --mirror "$MIRROR_URL"
+          git remote add mirror https://sn0313:${{ secrets.SIT_PAT }}@github.com/sn0313/cicd-sit.git
+          git push --mirror mirror
