@@ -28,28 +28,23 @@ fi
         }
 
         stage('Promote to Prod') {
-            when {
-                expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH?.endsWith('/main') }
-            }
-            steps {
-                echo "Mirroring only index.html to cicd-prod repository..."
+    when {
+        expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH?.endsWith('/main') }
+    }
+    steps {
+        echo "Mirroring only index.html to cicd-prod repository..."
 
-                withCredentials([usernamePassword(credentialsId: env.GITHUB_CREDS, usernameVariable: 'USER', passwordVariable: 'TOKEN')]) {
-                    sh '''
+        withCredentials([usernamePassword(credentialsId: env.GITHUB_CREDS, usernameVariable: 'USER', passwordVariable: 'TOKEN')]) {
+            sh '''
 git config --global user.email "jenkins@myci.com"
 git config --global user.name "Jenkins CI"
 
-# Clean previous clone if exists
+# Fresh clone of prod repo
 rm -rf cicd-prod
-
-# Clone production repo
 git clone https://${USER}:${TOKEN}@github.com/sn0313/cicd-prod.git
 cd cicd-prod
 
-# Pull latest changes first to avoid non-fast-forward errors
-git pull --rebase origin main || true
-
-# Copy only index.html from dev repo
+# Copy only index.html from dev
 cp ../index.html index.html
 
 # Stage changes
@@ -63,17 +58,6 @@ else
     echo "No changes to commit."
 fi
 '''
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'CI Pipeline completed successfully!'
-        }
-        failure {
-            echo 'CI Pipeline failed!'
         }
     }
 }
