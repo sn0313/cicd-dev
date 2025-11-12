@@ -4,32 +4,39 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo "Build started..."
+                echo "Building dev branch..."
                 sh 'ls -l'
             }
         }
 
         stage('Test') {
             steps {
-                echo "Running simple tests..."
-                sh 'if [ -f index.html ]; then echo "index.html exists, test passed!"; else echo "Test failed!"; exit 1; fi'
+                echo "Running tests..."
+                sh 'if [ -f index.html ]; then echo "Test passed"; else exit 1; fi'
             }
         }
 
-        stage('Deploy') {
+        stage('Promote to Prod') {
+            when {
+                branch 'main' // Only mirror if main branch passes
+            }
             steps {
-                echo "Deploying to web server..."
-                sh 'sudo cp index.html /usr/share/nginx/html/index.html'
+                echo "Mirroring code to production repo..."
+                withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'USER', passwordVariable: 'TOKEN')]) {
+                    sh '''
+                    git config --global user.email "jenkins@myci.com"
+                    git config --global user.name "Jenkins CI"
+                    git remote add prod https://${USER}:${TOKEN}@github.com/sn0313/cicd-prod.git || true
+                    git push prod main --force
+                    '''
+                }
             }
         }
     }
 
     post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
+        success { echo "CI Pipeline succeeded and mirrored to prod." }
+        failure { echo "CI Pipeline failed." }
     }
 }
+
